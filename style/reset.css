@@ -1,0 +1,4 @@
+*{padding:0;margin:0;}
+
+/* 去除滚动条 */
+html { overflow-x: hidden; overflow-y: hidden; } 
