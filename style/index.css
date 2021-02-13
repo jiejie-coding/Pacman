@@ -1,0 +1,8 @@
+canvas {
+  display: block;
+  background: #000;
+  margin: 0 auto;
+  line-height: 36px;
+  text-align: center;
+  color: #999;
+}
