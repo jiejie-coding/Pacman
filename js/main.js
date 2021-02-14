@@ -1,4 +1,4 @@
-'use strict';
+// 'use strict';
 //活动对象构造
 function Item(options) {
   options = options || {};
@@ -19,56 +19,98 @@ function Item(options) {
     update: function () { },	//更新参数信息
     draw: function () { }		//绘制
   };
-  for (var i in settings) {
-    that[i] = options[i] || settings[i];
+  for (let key in settings) {
+    that[key] = options[key] || settings[key];
   }
 }
 //游戏对象
 function Game(id, options) {
-  var that = this;
-  var settings = {
-    width: 100,		//画布宽度
-    height: 100,		//画布高度
-    view: {			//视图
-      x: 0,
+  let that = this;
+  let settings = {
+    name: 'Pacman',		//游戏名称
+    width: 960,			//画布宽度
+    height: 640,			//画布高度
+    map: {				//地图信息
+      x: 0,			//地图起点坐标
       y: 0,
-      width: 640,
-      height: 640
+      size: 20,		//地图单元的宽度
+      data: []
     },
-    fresh: 125,		//画布刷新频率,一秒8帧
-    map: [],			//地图信息
-    audio: [],		//音频资源
-    images: [],		//图片资源
+    fresh: 100,			//画布刷新频率,一秒10帧
+    audio: [],			//音频资源
+    images: [],			//图片资源
   };
-  for (key in options) {
+  for (let key in options) {
     settings[key] = options[key];
   }
-  var $canvas = document.getElementById(id);
-  $canvas.style.width = settings.width + 'vw';
-  $canvas.style.height = settings.height + 'vh';
-  var _context = $canvas.getContext('2d');	//画布上下文环境
-  var _items = [];		//对象队列
-  var _t = 0;				//内部计算器,交替帧数更新动画
-  var _hander = null;  	//画布更新
-  //动画停止
-  this.stop = function () {
-    _hander && clearInterval(_hander);
-  };
+  let $canvas = document.getElementById(id);
+  $canvas.width = _settings.width;
+  $canvas.height = _settings.height;
+  let context = $canvas.getContext('2d');	//画布上下文环境
+  let items = [];							//动画对象队列
+  let status = 0;							//页面状态							
+  let hander = null;  						//画布更新
   //动画开始
-  this.start = function () {
-    that.stop();
+  this.startAnimate = function (callback, frame) {
+    frame = frame || 1;
+    let requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.msRequestAnimationFrame;
+    let t = 0;	//帧数计算
+    let fn = function () {
+      t++;
+      if (!(t % frame)) {
+        callback(t / frame);
+      }
+      hander = requestAnimationFrame(fn);
+    };
+    that.stopAnimate();
+    hander = requestAnimationFrame(fn);
+  };
+  //动画结束
+  this.stopAnimate = function () {
+    let cancelAnimationFrame = window.cancelAnimationFrame || window.webkitCancelAnimationFrame || window.mozCancelAnimationFrame || window.msCancelAnimationFrame;
+    hander && cancelAnimationFrame(_hander);
+  };
+  //开始画面
+  this.launch = function () {
+    that.startAnimate(function (t) {
+      //清除画布
+      context.clearRect(0, 0, _settings.width, _settings.height);
+      //logo
+      context.fillStyle = '#FC3';
+      context.beginPath();
+      if (t % 2) {
+        context.arc(_settings.width / 2, _settings.height * .45, 50, .20 * Math.PI, 1.80 * Math.PI, false);
+        context.lineTo(_settings.width / 2, _settings.height * .45);
+      } else {
+        context.arc(_settings.width / 2, _settings.height * .45, 50, .01 * Math.PI, 1.99 * Math.PI, false);
+        context.lineTo(_settings.width / 2, _settings.height * .45);
+      }
+      context.closePath();
+      context.fill();
+      context.fillStyle = '#000';
+      context.beginPath();
+      context.arc(_settings.width / 2 + 5, _settings.height * .45 - 27, 7, 0, 2 * Math.PI, false);
+      context.closePath();
+      context.fill();
+      //游戏名
+      context.font = 'bold 42px Helvetica';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillStyle = '#FFF';
+      context.fillText(_settings.name, _settings.width / 2, _settings.height * .6);
 
-    _hander = setInterval(function () {  //定时刷新画布
-      _t++;
-      _items.forEach(function (item, index) {
-        item.update(_t);
+    }, 10);
+  };
+  this.update = function () {
+    startAnimate(function (t) {
+      items.forEach(function (item, index) {
+        item.update(t);
       });
-    }, settings.fresh);
-
+    });
   };
   //添加对象
   this.addItem = function (item) {
-    _items.push(item);
+    items.push(item);
   };
   //条件嗅探
   this.render = function () {
@@ -78,4 +120,10 @@ function Game(id, options) {
   this.draw = function () {
 
   };
+  //事件
 }
+
+
+
+
+
